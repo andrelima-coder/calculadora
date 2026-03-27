@@ -1023,6 +1023,7 @@
     const err=document.getElementById('login-err');
     err.classList.remove('show');
     err.style.textAlign='center';
+    err.style.fontSize='.78rem';
     if(!email||!pass){
       err.textContent='Preencha e-mail e senha.';
       err.classList.add('show');prog(0);return;
@@ -1032,24 +1033,31 @@
       const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
       if(error){
         prog(0);
-        if(error.message?.includes('Invalid login')||error.status===400||error.status===401){
-          err.textContent='E-mail ou senha incorretos.';
-        } else if(!navigator.onLine){
-          err.textContent='Sem conexão com a internet.';
-        } else {
-          err.textContent='Erro ao conectar. Certifique-se de abrir este arquivo via servidor HTTP (não file://).';
+        // Mostra mensagem técnica completa para diagnóstico
+        const msg=error.message||'';
+        const status=error.status||0;
+        if(msg.toLowerCase().includes('email')||msg.toLowerCase().includes('disabled')||msg.toLowerCase().includes('provider')){
+          err.textContent='⚠️ Auth desabilitado no Supabase. Erro: '+msg;
+          err.style.fontSize='.7rem';
+        } else if(msg.toLowerCase().includes('invalid')||status===400||status===401){
+          err.textContent='Credenciais incorretas. ('+status+': '+msg+')';
           err.style.fontSize='.72rem';
+        } else {
+          err.textContent='Erro '+status+': '+msg;
+          err.style.fontSize='.7rem';
         }
         err.classList.add('show');
+        console.error('Supabase auth error:',error);
         return;
       }
       prog(70);
       iniciarApp();
     }catch(e){
       prog(0);
-      err.textContent='Erro de rede. Abra este arquivo via servidor HTTP, não diretamente pelo navegador (file://).';
-      err.style.fontSize='.72rem';
+      err.textContent='Erro de rede: '+e.message;
+      err.style.fontSize='.7rem';
       err.classList.add('show');
+      console.error('Login catch:',e);
     }
   }
 
@@ -1063,11 +1071,17 @@
   }
 
   async function checkSession(){
-    const{data}=await sb.auth.getSession();
-    if(data.session) iniciarApp();
+    // MODO TESTE: login desabilitado temporariamente
+    document.getElementById('sbAvatar').textContent='A';
+    document.getElementById('sbUserName').textContent='afya';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').classList.add('show');
+    prog(80);
+    await carregarLeads();
+    prog(100);
   }
 
-  // ─── INICIALIZAR ───
+  // ─── INICIALIZAR (com auth) ───
   async function iniciarApp(){
     const{data}=await sb.auth.getUser();
     if(data?.user){
