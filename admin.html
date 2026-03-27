@@ -1071,17 +1071,11 @@
   }
 
   async function checkSession(){
-    // MODO TESTE: login desabilitado temporariamente
-    document.getElementById('sbAvatar').textContent='A';
-    document.getElementById('sbUserName').textContent='afya';
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').classList.add('show');
-    prog(80);
-    await carregarLeads();
-    prog(100);
+    const{data}=await sb.auth.getSession();
+    if(data.session) iniciarApp();
   }
 
-  // ─── INICIALIZAR (com auth) ───
+  // ─── INICIALIZAR ───
   async function iniciarApp(){
     const{data}=await sb.auth.getUser();
     if(data?.user){
