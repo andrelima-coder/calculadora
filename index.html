@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TEMI 2026 — Calculadora Curricular | Afya Medicina Intensiva</title>
+  <meta name="description" content="Calcule sua pontuação curricular para o TEMI 2026 e descubra sua meta de acertos na prova teórica." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --ink:#000;--ink-2:#111;--ink-3:#1c1c1e;--ink-4:#2c2c2e;--ink-5:#3a3a3c;
+      --t1:#f5f5f7;--t2:#a1a1a6;--t3:#636366;
+      --gold:#c9a84c;--gold-hi:#e8c97a;--gold-lo:#8f6e28;
+      --glass:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);
+      --ease:cubic-bezier(.25,.1,.25,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Figtree',-apple-system,sans-serif;background:var(--ink);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+    /* ── NAV ── */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5%,48px);background:rgba(0,0,0,.82);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:.93rem;color:var(--t1);letter-spacing:-.01em}
+    .nav-brand em{color:var(--gold);font-style:normal}
+    .nav-pill{font-family:'Figtree',sans-serif;font-size:.8rem;font-weight:500;color:var(--gold);border:1px solid rgba(201,168,76,.38);padding:6px 16px;border-radius:980px;text-decoration:none;transition:all .2s var(--ease)}
+    .nav-pill:hover{background:rgba(201,168,76,.1)}
+
+    /* ── HERO ──
+       FIX: image pushed further right (object-position 82%) so text left zone is clear.
+       Stronger left gradient covers the transition zone.
+    */
+    .hero{position:relative;width:100%;height:100vh;min-height:600px;display:flex;align-items:flex-end;overflow:hidden}
+    .hero-img{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;
+      object-position:82% 12%; /* FIX: pushed right + slight top crop = younger look */
+      transform:scale(1.04);transition:transform 9s ease-out;
+    }
+    .hero-img.ken{transform:scale(1)}
+    .hero-grad-b{position:absolute;bottom:0;left:0;right:0;height:78%;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,.92) 26%,rgba(0,0,0,.6) 56%,transparent 100%)}
+    /* FIX: stronger left gradient – covers text zone without the face */
+    .hero-grad-l{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(0,0,0,.96) 0%,rgba(0,0,0,.88) 30%,rgba(0,0,0,.55) 50%,rgba(0,0,0,.1) 68%,transparent 82%)}
+    .hero-grad-t{position:absolute;top:0;left:0;right:0;height:130px;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.75) 0%,transparent 100%)}
+    .hero-body{position:relative;z-index:2;width:100%;max-width:640px;padding:80px clamp(20px,5%,60px) 72px}
+
+    .h-eye{display:inline-flex;align-items:center;gap:8px;font-family:'Figtree',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;opacity:0;transform:translateY(14px);animation:fup .65s var(--ease) .15s forwards}
+    .h-eye::before{content:'';display:inline-block;width:24px;height:1px;background:var(--gold);opacity:.65}
+    .h1{font-family:'Syne',sans-serif;font-size:clamp(2.4rem,5.2vw,4.8rem);font-weight:800;line-height:1.03;letter-spacing:-.03em;color:var(--t1);margin-bottom:18px;opacity:0;transform:translateY(22px);animation:fup .8s var(--ease) .3s forwards;text-shadow:0 2px 20px rgba(0,0,0,.8),0 1px 4px rgba(0,0,0,.9)}
+    .h1 .g{background:linear-gradient(130deg,var(--gold-hi) 0%,var(--gold) 55%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none}
+    .h-sub{font-size:clamp(.88rem,1.6vw,1.02rem);font-weight:300;color:rgba(245,245,247,.72);line-height:1.6;max-width:420px;margin-bottom:32px;opacity:0;transform:translateY(18px);animation:fup .8s var(--ease) .45s forwards;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+    .h-btns{display:flex;align-items:center;gap:14px;flex-wrap:wrap;opacity:0;transform:translateY(16px);animation:fup .8s var(--ease) .6s forwards}
+    .btn-solid{display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:var(--ink);font-family:'Figtree',sans-serif;font-weight:600;font-size:.9rem;padding:13px 26px;border-radius:980px;border:none;cursor:pointer;text-decoration:none;letter-spacing:-.01em;transition:all .22s var(--ease)}
+    .btn-solid:hover{background:var(--gold-hi);transform:scale(1.03);box-shadow:0 8px 28px rgba(201,168,76,.3)}
+    .btn-solid svg{width:13px;height:13px;transition:transform .2s}
+    .btn-solid:hover svg{transform:translateX(3px)}
+    .btn-txt{font-family:'Figtree',sans-serif;font-size:.86rem;font-weight:500;color:rgba(245,245,247,.7);text-decoration:none;transition:color .2s}
+    .btn-txt:hover{color:var(--gold)}
+    .h-stats{display:flex;margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.07);opacity:0;animation:fup .8s var(--ease) .78s forwards}
+    .hst{flex:1;padding-right:20px;border-right:1px solid rgba(255,255,255,.07);margin-right:20px}
+    .hst:last-child{border-right:none;margin-right:0}
+    .hst-v{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--t1);text-shadow:0 1px 8px rgba(0,0,0,.7)}
+    .hst-v em{color:var(--gold);font-style:normal}
+    .hst-l{font-size:.67rem;color:rgba(245,245,247,.4);margin-top:3px}
+    .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;animation:fadeIn 1s .8s both,bob 2.4s ease-in-out 1.8s infinite}
+    .scroll-cue-lbl{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)}
+    .scroll-cue-line{width:1px;height:32px;background:linear-gradient(to bottom,var(--gold),transparent);animation:growL 1s .95s both}
+    @keyframes growL{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+    @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+    /* ── NOTICES ── */
+    .notices{background:var(--ink-2);border-bottom:1px solid var(--border)}
+    .notices-in{max-width:1100px;margin:0 auto;padding:0 clamp(20px,5%,48px);display:flex}
+    .nc{flex:1;display:flex;align-items:flex-start;gap:9px;padding:17px 20px 17px 0;border-right:1px solid var(--border)}
+    .nc:last-child{border-right:none;padding-right:0}
+    .nc:not(:first-child){padding-left:20px}
+    .nc-ico{font-size:.95rem;margin-top:1px;flex-shrink:0;opacity:.8}
+    .nc-txt{font-size:.77rem;color:var(--t3);line-height:1.45}
+    .nc-txt strong{color:var(--t2);font-weight:500}
+    @media(max-width:600px){.notices-in{flex-direction:column}.nc{border-right:none;border-bottom:1px solid var(--border);padding:13px 0}.nc:last-child{border-bottom:none}}
+
+    /* ── SECTION ── */
+    .s{max-width:1100px;margin:0 auto;padding:68px clamp(20px,5%,48px)}
+    .s-sup{font-size:.72rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+    .s-title{font-family:'Syne',sans-serif;font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:700;letter-spacing:-.026em;color:var(--t1);line-height:1.08}
+    .s-body{font-size:.92rem;color:var(--t2);margin-top:9px;max-width:520px;line-height:1.6}
+    .s-head{margin-bottom:44px}
+
+    /* ── CALC LAYOUT ── */
+    .calc-l{display:grid;grid-template-columns:1fr 336px;gap:22px;align-items:start}
+    @media(max-width:940px){.calc-l{grid-template-columns:1fr}}
+
+    /* ── GLASS CARD ── */
+    .gc{background:var(--glass);border:1px solid var(--border);border-radius:20px;overflow:visible;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .28s var(--ease)}
+    .gc:hover{border-color:rgba(201,168,76,.16)}
+    .gc-h{padding:17px 22px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;border-radius:20px 20px 0 0}
+    .gc-h-ico{font-size:.95rem}
+    .gc-h-title{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+    .rows{padding:10px 22px 14px;display:flex;flex-direction:column;gap:8px}
+    .row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+    .row:last-child{border-bottom:none}
+    .row-lbl{display:flex;align-items:center;gap:5px;font-size:.83rem;color:var(--t2);font-weight:400}
+
+    /* ── TOOLTIP FIX ──
+       Tooltips are now FIXED-positioned via JS,
+       painted into a single global floater so they never clip or overflow.
+    */
+    .tw{position:relative;display:inline-flex}
+    .ib{background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--t3);font-size:.75rem;line-height:1;transition:color .18s;border-radius:4px}
+    .ib:hover{color:var(--gold);background:rgba(201,168,76,.08)}
+    /* Global floating tooltip - positioned by JS */
+    #tooltip-global{
+      display:none;position:fixed;z-index:9999;
+      background:var(--ink-3);
+      border:1px solid rgba(201,168,76,.3);
+      border-radius:11px;padding:13px 15px;
+      max-width:280px;min-width:200px;
+      font-size:.76rem;line-height:1.55;color:var(--t2);
+      box-shadow:0 20px 56px rgba(0,0,0,.85);
+      pointer-events:none;
+      transition:opacity .15s;
+    }
+    #tooltip-global.show{display:block}
+    #tooltip-global strong{color:var(--gold);display:block;margin-bottom:5px;font-size:.77rem}
+    /* Arrow */
+    #tooltip-global::before{
+      content:'';position:absolute;
+      border:6px solid transparent;
+    }
+    #tooltip-global.arrow-down::before{top:100%;left:50%;transform:translateX(-50%);border-top-color:rgba(201,168,76,.3)}
+    #tooltip-global.arrow-up::before{bottom:100%;left:50%;transform:translateX(-50%);border-bottom-color:rgba(201,168,76,.3)}
+
+    /* Qty */
+    .qty{display:flex;align-items:center;background:var(--ink-3);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .qb{background:none;border:none;cursor:pointer;color:var(--gold);font-size:1rem;font-weight:300;width:30px;height:34px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+    .qb:hover{background:rgba(201,168,76,.1)}
+    .qv{width:40px;text-align:center;background:none;border:none;color:var(--t1);font-family:'Figtree',sans-serif;font-size:.86rem;font-weight:500;padding:4px 0}
+    .qv:focus{outline:none}
+    .bmax{font-size:.58rem;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.28);visibility:hidden}
+    .bmax.on{visibility:visible}
+
+    /* REMI */
+    .remi-w{padding:13px 22px 17px;border-top:1px solid var(--border)}
+    .ck-lbl{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:.8rem;color:var(--t2);line-height:1.45}
+    .ck-lbl input[type=checkbox]{appearance:none;width:16px;height:16px;min-width:16px;border:1.5px solid var(--ink-5);border-radius:4px;background:var(--ink-3);cursor:pointer;margin-top:1px;transition:all .18s;position:relative}
+    .ck-lbl input[type=checkbox]:checked{background:var(--gold);border-color:var(--gold)}
+    .ck-lbl input[type=checkbox]:checked::after{content:'✓';position:absolute;color:var(--ink);font-size:.6rem;font-weight:900;top:50%;left:50%;transform:translate(-50%,-50%)}
+    .remi-alert{display:none;margin-top:11px;background:rgba(201,168,76,.06);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;font-size:.76rem;color:var(--t2);line-height:1.5}
+    .remi-alert.show{display:block}
+
+    /* ── RESULT PANEL ── */
+    .rs{position:sticky;top:64px}
+
+    /* FIX: result card unlocking
+       We use a wrapper with overflow:visible so the lock overlay isn't clipped.
+       The card itself handles the blur. Both transitions are properly configured.
+    */
+    .rs-wrap{position:relative;border-radius:20px}
+
+    /* Lock overlay sits on top of the card */
+    .rs-lock-overlay{
+      position:absolute;inset:0;z-index:20;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:10px;cursor:pointer;border-radius:20px;
+      background:rgba(0,0,0,.1);
+      transition:opacity .5s var(--ease);
+    }
+    .rs-lock-overlay.hidden{opacity:0;pointer-events:none}
+    .lock-circle{width:56px;height:56px;border-radius:50%;background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:1.4rem;transition:all .22s var(--ease)}
+    .rs-lock-overlay:hover .lock-circle{background:rgba(201,168,76,.24);transform:scale(1.08)}
+    .lock-msg{font-size:.76rem;color:var(--t2);text-align:center;max-width:200px;line-height:1.45}
+    .lock-cta{background:var(--gold);color:var(--ink);border:none;border-radius:980px;padding:10px 20px;font-family:'Figtree',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .22s var(--ease);margin-top:4px}
+    .lock-cta:hover{background:var(--gold-hi);transform:scale(1.03)}
+
+    /* The glass card that gets blurred */
+    .rs-inner{
+      background:var(--glass);
+      border:1px solid var(--border);
+      border-radius:20px;
+      overflow:hidden;
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      display:flex;flex-direction:column;
+      /* FIX: apply filter/opacity transitions here */
+      filter:blur(5px) brightness(.35);
+      opacity:.6;
+      transition:filter .65s var(--ease),opacity .65s var(--ease),border-color .65s var(--ease);
+    }
+    .rs-inner.unlocked{
+      filter:none;
+      opacity:1;
+      border-color:rgba(201,168,76,.22);
+    }
+
+    /* SVG ring */
+    .sd{padding:26px 22px 18px;text-align:center;border-bottom:1px solid var(--border)}
+    .rw{position:relative;display:inline-block;margin-bottom:10px}
+    .ring{width:108px;height:108px;transform:rotate(-90deg)}
+    .rbg{fill:none;stroke:var(--ink-4);stroke-width:5.5}
+    .rfg{fill:none;stroke:url(#gGold);stroke-width:5.5;stroke-linecap:round;stroke-dasharray:307;stroke-dashoffset:307;transition:stroke-dashoffset .7s var(--ease)}
+    .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .rn{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;color:var(--t1);letter-spacing:-.04em;line-height:1}
+    .rd{font-size:.68rem;color:var(--t3)}
+    .sl{font-size:.74rem;color:var(--t3)}
+    .sm{font-size:.8rem;color:var(--t2);margin-top:2px;min-height:1.15em}
+
+    /* Corte */
+    .cb{padding:17px 22px;text-align:center;border-bottom:1px solid var(--border)}
+    .cs{font-size:.68rem;color:var(--t3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px}
+    .cv{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:var(--gold);letter-spacing:-.04em;line-height:1}
+    .cx{font-size:.72rem;color:var(--t3);margin-top:2px}
+    .nf{font-size:.74rem;color:var(--t3);margin-top:7px;min-height:1.05em}
+    .nf strong{color:var(--gold)}
+
+    /* Breakdown */
+    .bk{padding:15px 22px;border-bottom:1px solid var(--border)}
+    .bk-sup{font-size:.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px}
+    .bki{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+    .bki:last-child{margin-bottom:0}
+    .bki-n{font-size:.73rem;color:var(--t3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bki-bw{flex:1.2;height:2.5px;background:var(--ink-4);border-radius:2px;overflow:hidden}
+    .bki-b{height:100%;background:var(--gold);border-radius:2px;transition:width .5s var(--ease)}
+    .bki-p{font-size:.7rem;color:var(--gold);font-weight:600;min-width:22px;text-align:right}
+
+    /* Revealed result */
+    .rrev{display:none;padding:18px 22px;text-align:center;border-top:1px solid var(--border)}
+    .rrev.show{display:block}
+    .cls-b{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:980px;margin-bottom:9px}
+    .cb-q{background:rgba(255,80,80,.1);color:#ff6e6e;border:1px solid rgba(255,80,80,.2)}
+    .cb-m{background:rgba(255,160,0,.1);color:#ffa040;border:1px solid rgba(255,160,0,.2)}
+    .cb-f{background:rgba(80,160,255,.1);color:#70b0ff;border:1px solid rgba(80,160,255,.2)}
+    .rmsg{font-size:.8rem;color:var(--t2);line-height:1.55}
+
+    /* ── BARRA DE PROGRESSO HORIZONTAL ── */
+    .prog-journey{
+      padding:18px 22px 14px;
+      border-bottom:1px solid var(--border);
+    }
+    /* Versão proeminente — usada no card de resultado revelado */
+    .prog-journey-hero{
+      padding:22px 26px 20px;
+      border-radius:16px;
+      background:linear-gradient(135deg,rgba(201,168,76,.08) 0%,rgba(201,168,76,.03) 100%);
+      border:1px solid rgba(201,168,76,.18);
+      margin-bottom:20px;
+    }
+    .prog-journey-hero .pj-header{margin-bottom:12px}
+    .prog-journey-hero .pj-label{font-size:.78rem;color:var(--t2);letter-spacing:.06em}
+    .prog-journey-hero .pj-pct{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--gold)}
+    .prog-journey-hero .pj-track{height:7px;border-radius:6px}
+    .prog-journey-hero .pj-steps{margin-top:12px}
+    .prog-journey-hero .pj-step{font-size:.72rem;font-weight:500}
+    .prog-journey-hero .pj-step-dot{width:7px;height:7px}
+    .pj-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .pj-label{font-size:.7rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.09em}
+    .pj-pct{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--gold)}
+    .pj-track{height:5px;background:var(--ink-4);border-radius:4px;overflow:hidden;position:relative}
+    .pj-fill{position:absolute;inset:0;right:auto;width:0%;height:100%;background:linear-gradient(90deg,var(--gold-lo),var(--gold),var(--gold-hi));border-radius:4px;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+    .pj-steps{display:flex;justify-content:space-between;margin-top:8px}
+    .pj-step{font-size:.62rem;color:var(--t3);display:flex;align-items:center;gap:3px}
+    .pj-step.done{color:var(--gold)}
+    .pj-step-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-5);flex-shrink:0}
+    .pj-step.done .pj-step-dot{background:var(--gold)}
+
+    /* ── CTA "PARA SABER MAIS" ── */
+    .temi-link-cta{
+      margin:18px 0 8px;
+      padding:14px 18px;
+      background:rgba(201,168,76,.06);
+      border:1px solid rgba(201,168,76,.18);
+      border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      text-decoration:none;
+      transition:all .22s var(--ease);
+      cursor:pointer;
+    }
+    .temi-link-cta:hover{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.35);transform:translateY(-1px)}
+    .temi-link-cta-left{display:flex;flex-direction:column;gap:2px}
+    .temi-link-cta-sup{font-size:.64rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
+    .temi-link-cta-txt{font-size:.84rem;font-weight:600;color:var(--t1);line-height:1.35}
+    .temi-link-cta-arr{color:var(--gold);font-size:1rem;flex-shrink:0;transition:transform .2s}
+    .temi-link-cta:hover .temi-link-cta-arr{transform:translateX(3px)}
+
+    /* ── SEÇÃO WHATSAPP ── */
+    .wa-section{
+      background:linear-gradient(135deg,rgba(37,211,102,.04) 0%,rgba(201,168,76,.04) 100%);
+      border-top:1px solid rgba(37,211,102,.12);
+      padding:56px clamp(20px,5%,48px);
+    }
+    .wa-inner{max-width:1100px;margin:0 auto}
+    .wa-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center}
+    @media(max-width:760px){.wa-grid{grid-template-columns:1fr;gap:28px}}
+    .wa-left{}
+    .wa-sup{font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#25d366;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+    .wa-sup::before{content:'';width:20px;height:1px;background:#25d366;opacity:.7}
+    .wa-title{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;letter-spacing:-.025em;color:var(--t1);line-height:1.1;margin-bottom:10px}
+    .wa-sub{font-size:.9rem;color:var(--t2);line-height:1.6;max-width:480px;margin-bottom:28px}
+    .wa-btn{
+      display:inline-flex;align-items:center;gap:10px;
+      background:#25d366;color:#fff;
+      font-family:'Figtree',sans-serif;font-weight:600;font-size:.95rem;
+      padding:14px 28px;border-radius:980px;border:none;cursor:pointer;
+      text-decoration:none;letter-spacing:-.01em;
+      transition:all .22s var(--ease);
+      box-shadow:0 4px 24px rgba(37,211,102,.25);
+    }
+    .wa-btn:hover{background:#20c05a;transform:scale(1.03);box-shadow:0 8px 32px rgba(37,211,102,.4)}
+    .wa-btn svg{width:18px;height:18px;flex-shrink:0}
+    .wa-btn-disabled{
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--ink-4);color:var(--t3);
+      font-family:'Figtree',sans-serif;font-weight:500;font-size:.85rem;
+      padding:12px 22px;border-radius:980px;
+      border:1px dashed var(--ink-6);
+      font-style:italic;
+    }
+    .wa-right{display:flex;flex-direction:column;align-items:center;gap:12px}
+    .wa-qr{
+      width:140px;height:140px;border-radius:14px;
+      background:var(--ink-3);border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .wa-qr img{width:100%;height:100%;object-fit:contain}
+    .wa-qr-placeholder{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      color:var(--t3);font-size:.72rem;text-align:center;
+    }
+    .wa-qr-placeholder span{font-size:1.6rem}
+    .wa-qr-lbl{font-size:.68rem;color:var(--t3);text-align:center}
+
+    /* Sugestões */
+    .sugest-panel{display:none;padding:16px 22px 20px;border-top:1px solid var(--border)}
+    .sugest-panel.show{display:block}
+    .sugest-title{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .sugest-item{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;margin-bottom:8px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.1);border-radius:10px;transition:border-color .2s var(--ease)}
+    .sugest-item:last-child{margin-bottom:0}
+    .sugest-item:hover{border-color:rgba(201,168,76,.25)}
+    .sugest-ico{font-size:.95rem;flex-shrink:0;margin-top:2px}
+    .sugest-head{font-size:.76rem;font-weight:600;color:var(--gold);margin-bottom:2px}
+    .sugest-desc{font-size:.71rem;color:var(--t2);line-height:1.45}
+    .sugest-pts{font-size:.67rem;color:var(--t3);margin-top:3px;font-weight:500}
+
+    /* ── FORM ──
+       FIX: form section uses a two-column layout to align with calc section above.
+       Left = text/form, Right = aligned with result panel.
+    */
+    .fw{background:var(--ink-2);border-top:1px solid var(--border);padding:68px clamp(20px,5%,48px);scroll-margin-top:54px}
+    .fw-inner{max-width:1100px;margin:0 auto}
+
+    /* FIX: use same grid as calc section so form aligns with panels */
+    .fw-grid{
+      display:grid;
+      grid-template-columns:1fr 336px;
+      gap:22px;
+      align-items:start;
+    }
+    @media(max-width:940px){.fw-grid{grid-template-columns:1fr}}
+
+    .fw-left{}
+    .ft{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,2.8vw,2.1rem);font-weight:700;letter-spacing:-.025em;color:var(--t1);margin-bottom:6px;line-height:1.1}
+    .fsub{font-size:.85rem;color:var(--t3);margin-bottom:28px;line-height:1.5;max-width:480px}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    @media(max-width:520px){.fg-grid{grid-template-columns:1fr}}
+    .fg{display:flex;flex-direction:column;gap:5px}
+    .fg.full{grid-column:1/-1}
+    .fg label{font-size:.72rem;color:var(--t3);font-weight:500;letter-spacing:.02em}
+    .fg input,.fg select{background:var(--ink-3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--t1);font-family:'Figtree',sans-serif;font-size:.88rem;transition:border-color .2s,box-shadow .2s;appearance:none}
+    .fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23636366' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:32px}
+    .fg input:focus,.fg select:focus{outline:none;border-color:rgba(201,168,76,.5);box-shadow:0 0 0 3px rgba(201,168,76,.09)}
+    .fg input::placeholder{color:var(--t3)}
+    .fg select option{background:var(--ink-3)}
+    .lgpd-lbl{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:.76rem;color:var(--t3);line-height:1.5}
+    .lgpd-lbl input[type=checkbox]{appearance:none;width:16px;height:16px;min-width:16px;border:1.5px solid var(--ink-5);border-radius:4px;background:var(--ink-3);cursor:pointer;margin-top:1px;transition:all .18s;position:relative;flex-shrink:0}
+    .lgpd-lbl input[type=checkbox]:checked{background:var(--gold);border-color:var(--gold)}
+    .lgpd-lbl input[type=checkbox]:checked::after{content:'✓';position:absolute;color:var(--ink);font-size:.6rem;font-weight:900;top:50%;left:50%;transform:translate(-50%,-50%)}
+    .sbtn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:var(--gold);color:var(--ink);border:none;border-radius:980px;padding:15px 26px;font-family:'Figtree',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;letter-spacing:-.01em;transition:all .22s var(--ease)}
+    .sbtn:disabled{background:var(--ink-5);color:var(--t3);cursor:not-allowed}
+    .sbtn:not(:disabled):hover{background:var(--gold-hi);transform:scale(1.02);box-shadow:0 8px 28px rgba(201,168,76,.22)}
+    .sbtn svg{width:13px;height:13px}
+    .ffb{display:none;margin-top:11px;padding:10px 13px;border-radius:9px;font-size:.8rem;text-align:center}
+    .ffb.err{display:block;background:rgba(255,80,80,.08);color:#ff8080;border:1px solid rgba(255,80,80,.18)}
+
+    /* Right column of the form — shows result card after unlock, or a teaser before */
+    .fw-right{}
+    .form-teaser{
+      background:var(--glass);border:1px solid var(--border);
+      border-radius:20px;padding:28px 22px;
+      text-align:center;
+    }
+    .form-teaser.hidden{display:none}
+    .teaser-ico{font-size:2rem;margin-bottom:12px}
+    .teaser-head{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--t1);margin-bottom:6px}
+    .teaser-sub{font-size:.78rem;color:var(--t3);line-height:1.5}
+    /* Result card appears in the right col after unlock */
+    .fw-result-card{display:none}
+    .fw-result-card.show{display:block}
+    .fw-result-card .gc{background:var(--glass);border:1px solid rgba(201,168,76,.22);border-radius:20px;overflow:hidden}
+
+    footer{padding:26px clamp(20px,5%,48px);text-align:center;border-top:1px solid var(--border);font-size:.72rem;color:var(--t3)}
+    footer a{color:var(--gold);text-decoration:none}
+
+    @keyframes fup{to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .rv{opacity:0;transform:translateY(20px);transition:opacity .65s var(--ease),transform .65s var(--ease)}
+    .rv.vis{opacity:1;transform:none}
+
+    .lo{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+    .lo.show{display:flex}
+    .spin{width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(201,168,76,.18);border-top-color:var(--gold);animation:sp .7s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
+
+    @media(max-width:768px){.hero-img{object-position:70% 12%}.hero-body{max-width:100%;padding-bottom:80px}}
+    @media(max-width:480px){.h-stats{display:none}.row{grid-template-columns:1fr auto auto}}
+  </style>
+</head>
+<body>
+
+<!-- Global floating tooltip — positioned by JS -->
+<div id="tooltip-global"></div>
+
+<div class="lo" id="lo"><div class="spin"></div></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Afya <em>Medicina Intensiva</em></div>
+  <a href="#form" class="nav-pill">Calcular meu TEMI</a>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <img src="hero-temi.jpeg" alt="Dr. André Lima — TEMI 2026" class="hero-img" id="heroImg" onload="this.classList.add('ken')" />
+  <div class="hero-grad-t"></div>
+  <div class="hero-grad-b"></div>
+  <div class="hero-grad-l"></div>
+  <div class="hero-body">
+    <div class="h-eye">TEMI 2026</div>
+    <h1 class="h1">Descubra onde<br>você <span class="g">está</span><br>no currículo.</h1>
+    <p class="h-sub">Calcule sua pontuação curricular em tempo real e saiba exatamente quantos acertos você precisa na prova teórica para ser aprovado.</p>
+    <div class="h-btns">
+      <a href="#calc" class="btn-solid">
+        Calcular agora
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#form" class="btn-txt">Ver resultado completo →</a>
+    </div>
+    <div class="h-stats">
+      <div class="hst"><div class="hst-v"><em>100</em></div><div class="hst-l">pts máximos no currículo</div></div>
+      <div class="hst"><div class="hst-v">48–50</div><div class="hst-l">acertos mínimos na prova</div></div>
+      <div class="hst"><div class="hst-v">05/10</div><div class="hst-l">prazo de envio de docs</div></div>
+    </div>
+  </div>
+  <div class="scroll-cue" onclick="document.getElementById('calc').scrollIntoView({behavior:'smooth'})">
+    <div class="scroll-cue-line"></div>
+    <span class="scroll-cue-lbl">rolar</span>
+  </div>
+</section>
+
+<!-- NOTICES -->
+<div class="notices">
+  <div class="notices-in">
+    <div class="nc"><span class="nc-ico">⚠️</span><div class="nc-txt"><strong>Pontuação mínima:</strong> 50 pts na análise curricular para seguir para a prova teórica.</div></div>
+    <div class="nc"><span class="nc-ico">🚫</span><div class="nc-txt"><strong>Não aceitos:</strong> certificados de Anestesiologia, Cirurgia, Cardiologia e Pneumologia.</div></div>
+    <div class="nc"><span class="nc-ico">📅</span><div class="nc-txt"><strong>Prazo de documentos:</strong> <strong>05/10/2026</strong>.</div></div>
+  </div>
+</div>
+
+<!-- ═══ CALCULADORA ═══ -->
+<div class="s" id="calc">
+  <div class="s-head rv">
+    <div class="s-sup">Análise curricular</div>
+    <h2 class="s-title">Calculadora de pontuação</h2>
+    <p class="s-body">Preencha cada critério conforme seus documentos. O painel é revelado após o cadastro.</p>
+  </div>
+
+  <div class="calc-l">
+    <!-- CRITÉRIOS -->
+    <div>
+      <!-- FORMAÇÃO -->
+      <div class="gc rv" style="margin-bottom:14px">
+        <div class="gc-h"><span class="gc-h-ico">🎓</span><span class="gc-h-title">Formação especializada</span></div>
+        <div class="rows">
+          <div class="row">
+            <div class="row-lbl">Residência em MI (CNRM/MEC)
+              <span class="tw"><button class="ib" data-tip="<strong>Residência em MI</strong>100 pts por título. Teto: 100 pts. Apenas residências reconhecidas pela CNRM/MEC em Medicina Intensiva." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('residencia')">−</button><input class="qv" type="number" id="residencia" value="0" min="0" max="1" onchange="calc()"><button class="qb" onclick="inc('residencia',1)">+</button></div>
+            <span class="bmax" id="max-residencia">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">PEMI-AMIB
+              <span class="tw"><button class="ib" data-tip="<strong>PEMI-AMIB</strong>100 pts. Teto: 100 pts. Programa de Especialização em MI da AMIB." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('pemi')">−</button><input class="qv" type="number" id="pemi" value="0" min="0" max="1" onchange="calc()"><button class="qb" onclick="inc('pemi',1)">+</button></div>
+            <span class="bmax" id="max-pemi">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Pós-grad. lato sensu em MI
+              <span class="tw"><button class="ib" data-tip="<strong>Pós-grad. lato sensu</strong>50 pts. Teto: 50 pts. Reconhecida pela AMIB ou MEC em Medicina Intensiva." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('posgrad')">−</button><input class="qv" type="number" id="posgrad" value="0" min="0" max="1" onchange="calc()"><button class="qb" onclick="inc('posgrad',1)">+</button></div>
+            <span class="bmax" id="max-posgrad">MAX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONGRESSOS -->
+      <div class="gc rv" style="margin-bottom:14px">
+        <div class="gc-h"><span class="gc-h-ico">🏛️</span><span class="gc-h-title">Congressos e eventos (2022–2026)</span></div>
+        <div class="rows">
+          <div class="row">
+            <div class="row-lbl">CBMI — 25 pts/edição
+              <span class="tw"><button class="ib" data-tip="<strong>CBMI</strong>25 pts por edição. Teto: 100 pts. Período: 2020–2025." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('cbmi')">−</button><input class="qv" type="number" id="cbmi" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('cbmi',99)">+</button></div>
+            <span class="bmax" id="max-cbmi">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Outros congressos AMIB — 20 pts
+              <span class="tw"><button class="ib" data-tip="<strong>Outros Congressos AMIB</strong>20 pts por evento. Teto: 100 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('congress_amib')">−</button><input class="qv" type="number" id="congress_amib" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('congress_amib',99)">+</button></div>
+            <span class="bmax" id="max-congress_amib">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Regional AMIB — 5 pts
+              <span class="tw"><button class="ib" data-tip="<strong>Evento Regional AMIB</strong>5 pts por evento. Teto: 10 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('regional_amib')">−</button><input class="qv" type="number" id="regional_amib" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('regional_amib',99)">+</button></div>
+            <span class="bmax" id="max-regional_amib">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Masterclass AMIB — 50 pts
+              <span class="tw"><button class="ib" data-tip="<strong>Masterclass AMIB</strong>50 pts por evento. Teto: 35 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('masterclass')">−</button><input class="qv" type="number" id="masterclass" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('masterclass',99)">+</button></div>
+            <span class="bmax" id="max-masterclass">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Euro Brazil — 10 pts (sem teto)
+              <span class="tw"><button class="ib" data-tip="<strong>Euro Brazil</strong>10 pts por evento. Sem teto por categoria. Período: sem restrição." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('eurobrazil')">−</button><input class="qv" type="number" id="eurobrazil" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('eurobrazil',99)">+</button></div>
+            <span class="bmax" id="max-eurobrazil">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">COMIN — 5 pts (sem teto)
+              <span class="tw"><button class="ib" data-tip="<strong>COMIN</strong>5 pts por evento. Sem teto por categoria." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('comin')">−</button><input class="qv" type="number" id="comin" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('comin',99)">+</button></div>
+            <span class="bmax" id="max-comin">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Outros eventos AMIB — 5 pts
+              <span class="tw"><button class="ib" data-tip="<strong>Outros Eventos AMIB</strong>5 pts por evento. Teto: 10 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('outros_eventos_amib')">−</button><input class="qv" type="number" id="outros_eventos_amib" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('outros_eventos_amib',99)">+</button></div>
+            <span class="bmax" id="max-outros_eventos_amib">MAX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CURSOS -->
+      <div class="gc rv">
+        <div class="gc-h"><span class="gc-h-ico">📚</span><span class="gc-h-title">Cursos (2022–2026)</span></div>
+        <div class="rows">
+          <div class="row">
+            <div class="row-lbl">Cursos AMIB — 10 pts/curso
+              <span class="tw"><button class="ib" data-tip="<strong>22 cursos AMIB elegíveis</strong>ACLS, CAMI, CDME, CITIN, CITIN Avançado, Construindo UTI de Alta Performance, CRM, DOTIN, ECOTIN, ECOTIN Avançado, FCCS, FCCS Cirúrgico, FCCS Obstétrico, FDM, Hemodinâmica, Humanização, Infecção, Cuidados Paliativos, Sepse, TENUTI, VENUTI, VAD.&#10;Teto: 100 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('cursos_amib')">−</button><input class="qv" type="number" id="cursos_amib" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('cursos_amib',99)">+</button></div>
+            <span class="bmax" id="max-cursos_amib">MAX</span>
+          </div>
+          <div class="row">
+            <div class="row-lbl">Outros cursos não-AMIB — 5 pts
+              <span class="tw"><button class="ib" data-tip="<strong>Outros Cursos</strong>5 pts por curso. Teto: 10 pts. Período: 2022–2026." onclick="showTip(this)">ⓘ</button></span>
+            </div>
+            <div class="qty"><button class="qb" onclick="dec('outros_cursos')">−</button><input class="qv" type="number" id="outros_cursos" value="0" min="0" onchange="calc()"><button class="qb" onclick="inc('outros_cursos',99)">+</button></div>
+            <span class="bmax" id="max-outros_cursos">MAX</span>
+          </div>
+        </div>
+        <div class="remi-w">
+          <label class="ck-lbl">
+            <input type="checkbox" id="remi_pemi" onchange="toggleRemi(this)"/>
+            <span>Sou REMI ou PEMI (cursando último ano)</span>
+          </label>
+          <div class="remi-alert" id="remi-alert">
+            <strong style="color:var(--gold)">Atenção REMI/PEMI:</strong> Os Residentes (REMI) e especializandos AMIB (PEMI) cursando o último ano que participarem do Teste de Progresso da AMIB em 2024, 2025 e 2026 serão isentos da prova teórica <strong>apenas se obtiverem 60 acertos no Teste de Progresso de 2026</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAINEL RESULTADO ═══ -->
+    <div class="rs">
+      <div class="rs-wrap">
+        <!-- Cadeado overlay -->
+        <div class="rs-lock-overlay" id="lockOverlay" onclick="scrollForm()">
+          <div class="lock-circle">🔒</div>
+          <div class="lock-msg">Preencha seus dados abaixo para revelar sua pontuação e sugestões</div>
+          <button class="lock-cta">Ver meu resultado →</button>
+        </div>
+
+        <!-- Card com blur que será removido -->
+        <div class="rs-inner" id="rsInner">
+
+          <!-- BARRA DE PROGRESSO JORNADA -->
+          <div class="prog-journey">
+            <div class="pj-header">
+              <span class="pj-label">Sua jornada TEMI 2026</span>
+              <span class="pj-pct">80%</span>
+            </div>
+            <div class="pj-track">
+              <div class="pj-fill" id="pjFill"></div>
+            </div>
+            <div class="pj-steps">
+              <div class="pj-step done"><div class="pj-step-dot"></div> Calculou</div>
+              <div class="pj-step done"><div class="pj-step-dot"></div> Cadastrou</div>
+              <div class="pj-step done"><div class="pj-step-dot"></div> Analisou</div>
+              <div class="pj-step" id="pjStepCom"><div class="pj-step-dot"></div> Comunidade</div>
+            </div>
+          </div>
+
+          <svg width="0" height="0" style="position:absolute">
+            <defs>
+              <linearGradient id="gGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#e8c97a"/><stop offset="100%" stop-color="#c9a84c"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <!-- Score ring -->
+          <div class="sd">
+            <div class="rw">
+              <svg class="ring" viewBox="0 0 110 110">
+                <circle class="rbg" cx="55" cy="55" r="49"/>
+                <circle class="rfg" id="rfg" cx="55" cy="55" r="49"/>
+              </svg>
+              <div class="rc"><div class="rn" id="rn">0</div><div class="rd">/ 100</div></div>
+            </div>
+            <div class="sl">pontuação curricular</div>
+            <div class="sm" id="sm">Preencha os critérios ao lado</div>
+          </div>
+          <!-- Corte -->
+          <div class="cb">
+            <div class="cs">Meta mínima na prova</div>
+            <div class="cv" id="cv">50</div>
+            <div class="cx">acertos exigidos</div>
+            <div class="nf" id="nf"></div>
+          </div>
+          <!-- Breakdown -->
+          <div class="bk" id="bkWrap" style="display:none">
+            <div class="bk-sup">Distribuição por categoria</div>
+            <div id="bkItems"></div>
+          </div>
+          <!-- Badge + msg (após revelar) -->
+          <div class="rrev" id="rrev">
+            <div id="clsBadge"></div>
+            <div class="rmsg" id="rmsg"></div>
+          </div>
+          <!-- Sugestões (após revelar) -->
+          <div class="sugest-panel" id="sugestPanel">
+            <div class="sugest-title">💡 Como melhorar seu currículo</div>
+            <div id="sugestItems"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FORMULÁRIO ═══ -->
+<div class="fw" id="form">
+  <div class="fw-inner">
+    <div class="fw-grid">
+      <!-- LEFT: form fields -->
+      <div class="fw-left">
+        <h2 class="ft rv">Preencha para ver<br>seu resultado completo</h2>
+        <p class="fsub rv">Seus dados são usados exclusivamente para contato sobre o TEMI 2026 e conteúdos da Afya Medicina Intensiva.</p>
+        <div class="fg-grid rv">
+          <div class="fg full"><label>Nome completo *</label><input type="text" id="f_nome" placeholder="Dr(a). Nome Sobrenome"/></div>
+          <div class="fg"><label>WhatsApp *</label><input type="tel" id="f_wa" placeholder="(00) 00000-0000" maxlength="15"/></div>
+          <div class="fg"><label>E-mail *</label><input type="email" id="f_em" placeholder="seu@email.com"/></div>
+          <div class="fg">
+            <label>Ano que fará a prova *</label>
+            <select id="f_ano"><option value="">Selecione...</option><option value="2026">2026</option><option value="2027">2027</option><option value="Ainda não decidi">Ainda não decidi</option></select>
+          </div>
+          <div class="fg">
+            <label>Especialidade atual (opcional)</label>
+            <select id="f_esp"><option value="">Selecione...</option><option>Clínica Médica</option><option>Anestesiologia</option><option>Cirurgia</option><option>UTI sem título</option><option>Outra</option></select>
+          </div>
+          <div class="fg full">
+            <label class="lgpd-lbl">
+              <input type="checkbox" id="f_lgpd" onchange="chkSubmit()"/>
+              <span>Concordo com o uso dos meus dados conforme a LGPD. Serão utilizados exclusivamente para contato sobre o TEMI 2026 e conteúdos da Afya Medicina Intensiva.</span>
+            </label>
+          </div>
+          <div class="fg full">
+            <button class="sbtn" id="sbtn" disabled onclick="submitLead()">
+              Quero ver meu resultado
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <div class="ffb" id="ffb"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: teaser antes / resultado depois -->
+      <div class="fw-right">
+        <!-- Teaser card antes de submeter -->
+        <div class="form-teaser" id="formTeaser">
+          <div class="teaser-ico">🎯</div>
+          <div class="teaser-head">Seu resultado personalizado</div>
+          <div class="teaser-sub">Após preencher o formulário ao lado, você verá sua pontuação completa, classificação e sugestões para fortalecer o currículo antes do TEMI 2026.</div>
+        </div>
+        <!-- Card de resultado duplicado para a seção do form (após unlock) -->
+        <div class="fw-result-card" id="fwResultCard">
+          <div class="gc">
+
+            <!-- BARRA DE JORNADA PROEMINENTE (topo do card revelado) -->
+            <div style="padding:22px 22px 0">
+              <div class="prog-journey-hero">
+                <div class="pj-header">
+                  <span class="pj-label">Sua jornada TEMI 2026</span>
+                  <span class="pj-pct" id="pjPct2">80%</span>
+                </div>
+                <div class="pj-track">
+                  <div class="pj-fill" id="pjFill2"></div>
+                </div>
+                <div class="pj-steps">
+                  <div class="pj-step done"><div class="pj-step-dot"></div> Calculou</div>
+                  <div class="pj-step done"><div class="pj-step-dot"></div> Cadastrou</div>
+                  <div class="pj-step done"><div class="pj-step-dot"></div> Analisou</div>
+                  <div class="pj-step" id="pjStepCom2"><div class="pj-step-dot"></div> Comunidade</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sd" style="padding:22px">
+              <div class="rw">
+                <svg class="ring" viewBox="0 0 110 110">
+                  <circle class="rbg" cx="55" cy="55" r="49"/>
+                  <circle class="rfg" id="rfg2" cx="55" cy="55" r="49"/>
+                </svg>
+                <div class="rc"><div class="rn" id="rn2">0</div><div class="rd">/ 100</div></div>
+              </div>
+              <div class="sl">pontuação curricular</div>
+              <div class="sm" id="sm2"></div>
+            </div>
+            <div class="cb">
+              <div class="cs">Meta mínima na prova</div>
+              <div class="cv" id="cv2">—</div>
+              <div class="cx">acertos exigidos</div>
+            </div>
+            <div style="padding:16px 22px 0">
+              <div id="clsBadge2" style="text-align:center;margin-bottom:10px"></div>
+              <div class="rmsg" id="rmsg2" style="text-align:center"></div>
+
+              <!-- CTA "Para saber mais" — link configurável pelo admin -->
+              <div id="temiLinkWrap" style="display:none">
+                <a class="temi-link-cta" id="temiLinkCta" href="#" target="_blank" rel="noopener">
+                  <div class="temi-link-cta-left">
+                    <div class="temi-link-cta-sup">Quer se aprofundar?</div>
+                    <div class="temi-link-cta-txt">Para saber mais sobre como passar no TEMI, nos acompanhe →</div>
+                  </div>
+                  <div class="temi-link-cta-arr">→</div>
+                </a>
+              </div>
+            </div>
+            <div class="sugest-panel show" id="sugestPanel2" style="border-top:1px solid var(--border)">
+              <div class="sugest-title">💡 Como melhorar seu currículo</div>
+              <div id="sugestItems2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO WHATSAPP ═══ -->
+<section class="wa-section" id="waSection" style="display:none">
+  <div class="wa-inner">
+    <div class="wa-grid">
+      <div class="wa-left">
+        <div class="wa-sup">Comunidade exclusiva</div>
+        <h2 class="wa-title">Complete sua jornada.<br>Entre para a <span style="color:#25d366">comunidade</span>.</h2>
+        <p class="wa-sub">Mais de 3.000 intensivistas se preparam juntos para o TEMI 2026. Tire dúvidas, compartilhe experiências e receba atualizações em tempo real diretamente no WhatsApp.</p>
+        <div id="waBtnWrap">
+          <div class="wa-btn-disabled">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 1C5.94 1 1 5.94 1 11.998c0 2.12.561 4.109 1.534 5.827L1 23l5.314-1.498A10.96 10.96 0 0 0 11.998 23c6.059 0 10.998-4.939 10.998-10.998S18.057 1 11.998 1zm0 20.062a9.04 9.04 0 0 1-4.61-1.265l-.331-.197-3.156.889.89-3.059-.215-.344A9.02 9.02 0 0 1 2.938 12c0-4.995 4.065-9.062 9.06-9.062S21.058 7.005 21.058 12 17.993 21.062 11.998 21.062z"/></svg>
+            Link sendo configurado pelo administrador...
+          </div>
+        </div>
+      </div>
+      <div class="wa-right">
+        <div class="wa-qr" id="waQrWrap">
+          <div class="wa-qr-placeholder">
+            <span>📱</span>
+            <div>QR Code em breve</div>
+          </div>
+        </div>
+        <div class="wa-qr-lbl">Escaneie para entrar<br>na comunidade</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 Afya Medicina Intensiva · <a href="#">Política de Privacidade</a> · Calculadora TEMI 2026</footer>
+
+<script>
+  // Supabase credentials
+  const SUPABASE_URL = 'https://adxmszrgysfnzgrrdnop.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkeG1zenJneXNmbnpncnJkbm9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjM0NzksImV4cCI6MjA1ODM5OTQ3OX0.3nEZMg1-OGbDJq1-28MQnFl1UnKluynm70nUqjPFBKw';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let submitted = false;
+
+  const CFG = {
+    residencia:          { pts:100, teto:100,      lb:'Residência MI' },
+    pemi:                { pts:100, teto:100,      lb:'PEMI-AMIB' },
+    posgrad:             { pts:50,  teto:50,       lb:'Pós-grad. MI' },
+    cbmi:                { pts:25,  teto:100,      lb:'CBMI' },
+    congress_amib:       { pts:20,  teto:100,      lb:'Congressos AMIB' },
+    regional_amib:       { pts:5,   teto:10,       lb:'Regionais AMIB' },
+    masterclass:         { pts:50,  teto:35,       lb:'Masterclass' },
+    eurobrazil:          { pts:10,  teto:Infinity, lb:'Euro Brazil' },
+    comin:               { pts:5,   teto:Infinity, lb:'COMIN' },
+    cursos_amib:         { pts:10,  teto:100,      lb:'Cursos AMIB' },
+    outros_eventos_amib: { pts:5,   teto:10,       lb:'Outros eventos' },
+    outros_cursos:       { pts:5,   teto:10,       lb:'Outros cursos' },
+  };
+
+  const gv = id => parseInt(document.getElementById(id)?.value||0,10)||0;
+  function inc(id,max){const el=document.getElementById(id);const v=parseInt(el.value,10)||0;if(v<max){el.value=v+1;calc()}}
+  function dec(id){const el=document.getElementById(id);const v=parseInt(el.value,10)||0;if(v>0){el.value=v-1;calc()}}
+
+  function calc(){
+    const par={};let raw=0;
+    for(const[k,c]of Object.entries(CFG)){
+      const v=Math.min(gv(k)*c.pts,c.teto===Infinity?Infinity:c.teto);
+      par[k]=v;raw+=v;
+      const b=document.getElementById('max-'+k);
+      if(b)b.classList.toggle('on',c.teto!==Infinity&&gv(k)*c.pts>=c.teto);
+    }
+    const total=Math.min(raw,100);
+    const circ=2*Math.PI*49;
+    // Primary ring (calc section)
+    document.getElementById('rfg').style.strokeDasharray=circ;
+    document.getElementById('rfg').style.strokeDashoffset=circ*(1-total/100);
+    document.getElementById('rn').textContent=total;
+    // Secondary ring (form section)
+    document.getElementById('rfg2').style.strokeDasharray=circ;
+    document.getElementById('rfg2').style.strokeDashoffset=circ*(1-total/100);
+    document.getElementById('rn2').textContent=total;
+
+    const corte=total>=100?48:total>=50?49:50;
+    document.getElementById('cv').textContent=corte;
+    document.getElementById('cv2').textContent=corte;
+
+    let sm='Preencha os critérios acima';
+    if(total>0&&total<50) sm='⚠️ Abaixo de 50 pts — reforce o currículo';
+    else if(total>=50&&total<100) sm='✅ Pontuação suficiente para a prova';
+    else if(total>=100) sm='🏆 Pontuação máxima atingida!';
+    document.getElementById('sm').textContent=sm;
+    document.getElementById('sm2').textContent=sm;
+
+    let nf='';
+    if(total>0&&total<50) nf=`Faltam <strong>${50-total} pts</strong> para corte de 49 acertos`;
+    else if(total>=50&&total<100) nf=`Faltam <strong>${100-total} pts</strong> para pontuação máxima`;
+    document.getElementById('nf').innerHTML=nf;
+
+    updateBk(par,total);
+    return{total,corte,par};
+  }
+
+  function updateBk(par,total){
+    const w=document.getElementById('bkWrap'),it=document.getElementById('bkItems');
+    const nz=Object.entries(par).filter(([,v])=>v>0);
+    if(!nz.length){w.style.display='none';return}
+    w.style.display='block';
+    it.innerHTML=nz.map(([k,v])=>{
+      const p=total>0?Math.round(v/total*100):0;
+      return`<div class="bki"><div class="bki-n">${CFG[k].lb}</div><div class="bki-bw"><div class="bki-b" style="width:${p}%"></div></div><div class="bki-p">${v}</div></div>`;
+    }).join('');
+  }
+
+  /* ── TOOLTIP FIX ──
+     Single global floating tooltip, positioned via getBoundingClientRect.
+     Never clips, never overflows viewport.
+  */
+  let tipTimeout;
+  function showTip(btn){
+    const existing=document.querySelector('.ib.active');
+    if(existing&&existing!==btn){hideTip();return}
+
+    const tip=document.getElementById('tooltip-global');
+    const html=btn.dataset.tip.replace(/&#10;/g,'<br>');
+    tip.innerHTML=html;
+    tip.classList.remove('show','arrow-down','arrow-up');
+
+    const rect=btn.getBoundingClientRect();
+    tip.style.visibility='hidden';
+    tip.classList.add('show');
+
+    const tw=tip.offsetWidth,th=tip.offsetHeight;
+    const margin=10;
+
+    // Horizontal: center on button, clamp to viewport
+    let left=rect.left+rect.width/2-tw/2;
+    left=Math.max(margin,Math.min(left,window.innerWidth-tw-margin));
+
+    // Vertical: prefer above, fall back to below
+    let top,arrow;
+    if(rect.top-th-margin>0){
+      top=rect.top-th-margin;arrow='arrow-down';
+    }else{
+      top=rect.bottom+margin;arrow='arrow-up';
+    }
+
+    tip.style.left=left+'px';
+    tip.style.top=top+'px';
+    tip.classList.add(arrow);
+    tip.style.visibility='visible';
+
+    btn.classList.add('active');
+    clearTimeout(tipTimeout);
+  }
+  function hideTip(){
+    document.getElementById('tooltip-global').classList.remove('show');
+    document.querySelectorAll('.ib.active').forEach(b=>b.classList.remove('active'));
+  }
+  document.addEventListener('click',e=>{if(!e.target.closest('.ib'))hideTip()});
+  document.addEventListener('scroll',hideTip,{passive:true});
+
+  function toggleRemi(cb){document.getElementById('remi-alert').classList.toggle('show',cb.checked)}
+  function scrollForm(){document.getElementById('form').scrollIntoView({behavior:'smooth'})}
+
+  document.getElementById('f_wa').addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'').slice(0,11);
+    if(v.length>10)v=v.replace(/^(\d{2})(\d{5})(\d{4})$/,'($1) $2-$3');
+    else if(v.length>6)v=v.replace(/^(\d{2})(\d{4})(\d*)$/,'($1) $2-$3');
+    else if(v.length>2)v=v.replace(/^(\d{2})(\d*)$/,'($1) $2');
+    else if(v.length>0)v='('+v;
+    this.value=v;
+  });
+
+  function chkSubmit(){document.getElementById('sbtn').disabled=!document.getElementById('f_lgpd').checked}
+
+  function getUTM(){const p=new URLSearchParams(location.search);return{utm_source:p.get('utm_source'),utm_medium:p.get('utm_medium'),utm_campaign:p.get('utm_campaign')}}
+
+  async function submitLead(){
+    if(submitted)return;
+    const{total,corte,par}=calc();
+    const nome=document.getElementById('f_nome').value.trim();
+    const whatsapp=document.getElementById('f_wa').value.trim();
+    const email=document.getElementById('f_em').value.trim();
+    const ano_prova=document.getElementById('f_ano').value;
+    const especialidade=document.getElementById('f_esp').value;
+    const eh_remi_pemi=document.getElementById('remi_pemi').checked;
+
+    if(!nome||!whatsapp||!email||!ano_prova){fb('Preencha todos os campos obrigatórios.','err');return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){fb('E-mail inválido.','err');return}
+
+    let cl='frio';
+    if(ano_prova==='2026')cl=total>=50?'quente':'morno';
+
+    const payload={nome,whatsapp,email,ano_prova,especialidade,pontuacao_total:total,faixa_corte:corte,eh_remi_pemi,detalhe_categorias:par,classificacao_lead:cl,...getUTM()};
+
+    document.getElementById('lo').classList.add('show');
+    document.getElementById('sbtn').disabled=true;
+    submitted=true;
+
+    /* ── FIX: revelar IMMEDIATELY so it never gets blocked by Supabase errors ── */
+    revelar(total,corte,cl,par);
+
+    /* Supabase in background — errors are silent */
+    try{
+      const{error}=await sb.from('leads_temi').insert([payload]);
+      if(error)throw error;
+      if(cl==='quente')sb.functions.invoke('notify-hot-lead',{body:payload}).catch(()=>{});
+    }catch(e){console.warn('Supabase (background):', e)}
+    finally{document.getElementById('lo').classList.remove('show')}
+  }
+
+  function revelar(total,corte,cl,par){
+    /* 1. Unlock result card in calc section */
+    const card=document.getElementById('rsInner');
+    card.classList.add('unlocked');
+    document.getElementById('lockOverlay').classList.add('hidden');
+
+    /* 2. Badge + message */
+    document.getElementById('rrev').classList.add('show');
+    const cm={quente:['cb-q','🔥 Perfil quente'],morno:['cb-m','🟡 Perfil morno'],frio:['cb-f','🔵 Perfil frio']};
+    const[css,lbl]=cm[cl]||cm.frio;
+    const badgeHtml=`<div class="cls-b ${css}">${lbl}</div>`;
+    document.getElementById('clsBadge').innerHTML=badgeHtml;
+
+    let msg='';
+    if(total>=100) msg=`🏆 Pontuação máxima! Corte de apenas <strong>48 acertos</strong> na prova.`;
+    else if(total>=50) msg=`✅ Com ${total} pts, você precisa de <strong>${corte} acertos</strong> na prova teórica.`;
+    else if(total>0) msg=`⚠️ Com ${total} pts, a meta é <strong>${corte} acertos</strong>. Invista no currículo.`;
+    else msg=`ℹ️ Currículo zerado. Meta: <strong>${corte} acertos</strong> na prova.`;
+    document.getElementById('rmsg').innerHTML=msg;
+
+    /* 3. Sugestões no painel do calc */
+    const sugestHtml=buildSugestoes(par,total);
+    document.getElementById('sugestItems').innerHTML=sugestHtml;
+    document.getElementById('sugestPanel').classList.add('show');
+
+    /* 4. Revelar card na seção do formulário */
+    document.getElementById('formTeaser').classList.add('hidden');
+    document.getElementById('fwResultCard').classList.add('show');
+    document.getElementById('clsBadge2').innerHTML=badgeHtml;
+    document.getElementById('rmsg2').innerHTML=msg;
+    document.getElementById('sugestItems2').innerHTML=sugestHtml;
+
+    /* 5. Ocultar o formulário e fazer scroll para o resultado */
+    const formEl=document.getElementById('form');
+    setTimeout(()=>{
+      formEl.querySelector('.fw-left').style.display='none';
+      document.getElementById('fwResultCard').scrollIntoView({behavior:'smooth',block:'center'});
+    },400);
+  }
+
+  function buildSugestoes(par,total){
+    const list=[];
+    if(!par.residencia&&!par.pemi){list.push({ico:'🎓',head:'Residência em MI ou PEMI-AMIB',desc:'Esses títulos valem 100 pts cada — o maior ganho possível. Priorize a residência em MI (CNRM/MEC) ou o PEMI-AMIB.',pts:'+100 pts'})}
+    if(!par.posgrad){list.push({ico:'📜',head:'Pós-graduação lato sensu em MI',desc:'Uma pós-graduação reconhecida pela AMIB ou MEC acrescenta 50 pts. É uma das formas mais acessíveis de elevar a pontuação base.',pts:'+50 pts'})}
+    if(par.cursos_amib<100){const f=Math.floor(par.cursos_amib/10),r=10-f;if(r>0)list.push({ico:'📚',head:'Cursos AMIB (10 pts cada)',desc:`Você tem ${f} curso(s) AMIB. Faltam ${r} para atingir o teto (100 pts). Elegíveis: FCCS, ECOTIN, VENUTI, TENUTI, ACLS e mais 17.`,pts:`+${r*10} pts disponíveis`})}
+    if(par.cbmi<100){const f=Math.floor(par.cbmi/25);if(f<4)list.push({ico:'🏛️',head:'CBMI — Congresso Brasileiro de MI',desc:`Cada edição vale 25 pts (máx. 100 pts). Você tem ${f} edição(ões). O próximo CBMI acrescenta 25 pts ao currículo.`,pts:`+${Math.min(25*(4-f),100-par.cbmi)} pts disponíveis`})}
+    if(par.masterclass<35){list.push({ico:'⭐',head:'Masterclass AMIB',desc:'Vale até 35 pts. Se ainda não participou, é uma das ações de maior retorno pontual no currículo do TEMI.',pts:`+${35-par.masterclass} pts disponíveis`})}
+    if(par.eurobrazil<20){list.push({ico:'🌍',head:'Euro Brazil — sem teto',desc:'10 pts por edição, sem teto. Excelente opção para intensivistas que buscam atualização internacional e pontuação adicional.',pts:'+10 pts por edição'})}
+    if(!list.length){list.push({ico:'🏆',head:'Currículo maximizado!',desc:'Seu currículo está próximo do máximo. Concentre a preparação na prova teórica. Com 100 pts, sua meta é de apenas 48 acertos.',pts:'Meta: 48 acertos'})}
+    return list.slice(0,4).map(s=>`
+      <div class="sugest-item">
+        <span class="sugest-ico">${s.ico}</span>
+        <div>
+          <div class="sugest-head">${s.head}</div>
+          <div class="sugest-desc">${s.desc}</div>
+          <div class="sugest-pts">${s.pts}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function fb(t,tp){const el=document.getElementById('ffb');el.textContent=t;el.className='ffb '+tp}
+
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+  /* ── BARRA DE PROGRESSO ── */
+  function animarProgresso(pct){
+    setTimeout(()=>{const f=document.getElementById('pjFill');if(f)f.style.width=pct+'%';},300);
+  }
+
+  /* ── WHATSAPP + TEMI LINK CONFIG ── */
+  async function carregarConfigWA(){
+    try{
+      const{data}=await sb.from('configuracoes').select('chave,valor');
+      if(!data)return;
+      const cfg={};data.forEach(r=>cfg[r.chave]=r.valor);
+
+      // ── Seção WhatsApp ──
+      if(cfg.whatsapp_ativo==='true'){
+        document.getElementById('waSection').style.display='block';
+      }
+
+      // Botão WhatsApp
+      const link=(cfg.whatsapp_link||'').trim();
+      if(link){
+        const waIcon=`<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 1C5.94 1 1 5.94 1 11.998c0 2.12.561 4.109 1.534 5.827L1 23l5.314-1.498A10.96 10.96 0 0 0 11.998 23c6.059 0 10.998-4.939 10.998-10.998S18.057 1 11.998 1zm0 20.062a9.04 9.04 0 0 1-4.61-1.265l-.331-.197-3.156.889.89-3.059-.215-.344A9.02 9.02 0 0 1 2.938 12c0-4.995 4.065-9.062 9.06-9.062S21.058 7.005 21.058 12 17.993 21.062 11.998 21.062z"/></svg>`;
+        document.getElementById('waBtnWrap').innerHTML=`<a href="${link}" target="_blank" rel="noopener" class="wa-btn">${waIcon} Entrar na Comunidade</a>`;
+        // Mark community step done + fill to 100%
+        ['pjStepCom','pjStepCom2'].forEach(id=>{const s=document.getElementById(id);if(s)s.classList.add('done')});
+        document.querySelectorAll('.pj-fill').forEach(f=>{if(f)f.style.width='100%'});
+        const pct2=document.getElementById('pjPct2');if(pct2)pct2.textContent='100%';
+      }
+
+      // QR Code
+      const qr=(cfg.whatsapp_qrcode||'').trim();
+      if(qr){
+        document.getElementById('waQrWrap').innerHTML=`<img src="${qr}" alt="QR Code — Comunidade TEMI 2026" style="width:100%;height:100%;object-fit:contain;border-radius:10px"/>`;
+      }
+
+      // ── Link "Para saber mais" ──
+      const temiLink=(cfg.temi_link||'').trim();
+      const temiWrap=document.getElementById('temiLinkWrap');
+      const temiCta=document.getElementById('temiLinkCta');
+      if(temiLink&&temiWrap&&temiCta){
+        temiCta.href=temiLink;
+        temiWrap.style.display='block';
+      }
+
+    }catch(e){console.warn('Config:',e)}
+  }
+
+  // ── INIT ──
+  calc();
+  animarProgresso(80);
+  // Animate second progress bar too
+  setTimeout(()=>{const f=document.getElementById('pjFill2');if(f)f.style.width='80%';},300);
+  carregarConfigWA();
+</script>
+</body>
+</html>
